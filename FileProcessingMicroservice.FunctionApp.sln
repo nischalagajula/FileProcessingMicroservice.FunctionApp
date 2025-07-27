@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileProcessingMicroservice.FunctionApp", "FileProcessingMicroservice.FunctionApp\FileProcessingMicroservice.FunctionApp.csproj", "{85BB78B6-4B82-4A0E-B7B1-461AAB67AB6D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{85BB78B6-4B82-4A0E-B7B1-461AAB67AB6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85BB78B6-4B82-4A0E-B7B1-461AAB67AB6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85BB78B6-4B82-4A0E-B7B1-461AAB67AB6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85BB78B6-4B82-4A0E-B7B1-461AAB67AB6D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {95C38645-A129-4518-960B-6A22C2C02793}
+	EndGlobalSection
+EndGlobal

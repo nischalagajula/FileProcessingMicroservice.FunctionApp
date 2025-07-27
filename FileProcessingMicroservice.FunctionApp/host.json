@@ -1,0 +1,45 @@
+
+{
+  "version": "2.0",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      },
+      "enableLiveMetricsFilters": true
+
+    }
+  },
+  "extensions": {
+    "http": {
+      "routePrefix": "api",
+      "maxOutstandingRequests": 200,
+      "maxConcurrentRequests": 100,
+      "dynamicThrottlesEnabled": true
+    },
+    "serviceBus": {
+      "maxConcurrentCalls": 16,
+      "prefetchCount": 32,
+      //"transportType": "AmqpTcp",
+      //"maxAutoLockRenewalDuration": "00:05:00",
+      "maxConcurrentSessions": 8,
+      "maxMessageBatchSize": 1000//,
+      //"sessionIdleTimeout": "00:01:00"
+    }
+  },
+  "retry": {
+    "strategy": "exponentialBackoff",
+    "maxRetryCount": 5,
+    "minimumInterval": "00:00:05",
+    "maximumInterval": "00:01:00"
+  },
+  //"functionTimeout": "00:10:00",
+  "healthMonitor": {
+    "enabled": true,
+    "healthCheckInterval": "00:00:10",
+    "healthCheckWindow": "00:02:00",
+    "healthCheckThreshold": 6,
+    "counterThreshold": 0.80
+  }
+}
