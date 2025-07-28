@@ -26,17 +26,22 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
     {
         private readonly BlobService _blobService;
         // private readonly IFileProcessingRepository _repository;
+        private readonly BlobSasService _blobSasService;
+
         private readonly ILogger<FileStatusFunction> _logger;
         //private readonly SasTokenService _sasTokenService;
 
         public FileStatusFunction(
             BlobService blobService,
-            //IFileProcessingRepository repository,
+                        //IFileProcessingRepository repository,
+                        BlobSasService blobSasService,
             ILogger<FileStatusFunction> logger)//,
             //SasTokenService sasTokenService)
         {
             _blobService = blobService;
             //_repository = repository;
+            _blobSasService = blobSasService;
+
             _logger = logger;
             //_sasTokenService = sasTokenService;
         }
@@ -118,12 +123,7 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 await using var outputStream = await _blobService.DownloadAsync("processed", processedBlob);
 
-                var statusResponse = new FileStatusResponse
-                {
-                    FileName = fileName,
-                    UploadedUrl = "TEST URL",//processedFile.OriginalBlobUrl,
-                    Status = processedExists.ToString()// "TEST Status"//processedFile.Status
-                };
+                
 
                 //// Add processed file information if available
                 //if (processedFile.Status == "Processed" && !string.IsNullOrEmpty(processedFile.ProcessedBlobUrl))
@@ -150,9 +150,9 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
                 //        timestamp = DateTime.UtcNow
                 //    });
 
-                    _logger.LogInformation("Returned failed status for file: {FileName}", fileName);
-                    //return response;
-               // }
+                //_logger.LogInformation("Returned failed status for file: {FileName}", fileName);
+                //return response;
+                // }
 
                 // For successful or in-progress files
                 //await response.WriteAsJsonAsync(new
@@ -170,9 +170,18 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
                 //    updatedAt = processedFile.UpdatedAt,
                 //    timestamp = DateTime.UtcNow
                 //});
+                // Generate SAS URL for the uploaded file
+                var ProcessedSasUrl = await _blobSasService.GenerateReadSasUrlAsync("processed", processedBlob);
 
                 _logger.LogInformation("Successfully returned status for file: {FileName}, Status: {Status}",
                     fileName, "TEST STATUS");
+                var statusResponse = new FileStatusResponse
+                {
+                    FileName = fileName,
+                    UploadedUrl = "TEST URL",//processedFile.OriginalBlobUrl,
+                    Status = processedExists.ToString(),// "TEST Status"//processedFile.Status
+                    ProcessedUrl = ProcessedSasUrl
+                };
                 //var BlobResponse = req.CreateResponse(HttpStatusCode.NotFound);
                 await response.WriteAsJsonAsync(statusResponse);
                 return response;

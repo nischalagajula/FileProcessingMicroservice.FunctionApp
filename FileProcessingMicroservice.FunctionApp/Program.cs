@@ -12,7 +12,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
+using System;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Azure.Storage.Blobs;
+using Azure.Messaging.ServiceBus;
 
 // Register Syncfusion license
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
@@ -35,8 +41,7 @@ var host = new HostBuilder()
         // Azure services
         services.AddSingleton(_ => new BlobServiceClient(storageConn));
         services.AddSingleton(_ => new ServiceBusClient(serviceBusConn));
-        //services.AddSingleton<SasTokenService>();
-
+        
         // Use Managed Identity for enhanced security
         //services.AddSingleton(serviceProvider =>
         //{
@@ -65,6 +70,7 @@ var host = new HostBuilder()
         services.AddScoped<ImageProcessingService>();
         services.AddScoped<TextToPdfService>();
         services.AddScoped<ProcessorFactory>();
+        services.AddScoped<BlobSasService>();
 
         //Application Insights
        //services.AddApplicationInsightsTelemetryWorkerService();
@@ -106,3 +112,5 @@ host.Run();
 //    .ConfigureFunctionsApplicationInsights();
 
 //builder.Build().Run();
+
+//host.Run();

@@ -27,19 +27,25 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
         private readonly ServiceBusClient _serviceBusClient;
         //private readonly IFileProcessingRepository _repository;
         private readonly ProcessorFactory _processorFactory;
+        private readonly BlobSasService _blobSasService;
+
         private readonly ILogger<UploadApiFunction> _logger;
+
 
         public UploadApiFunction(
             BlobService blobService,
             ServiceBusClient serviceBusClient,
             //IFileProcessingRepository repository,
             ProcessorFactory processorFactory,
-            ILogger<UploadApiFunction> logger)
+            BlobSasService blobSasService,
+        ILogger<UploadApiFunction> logger)
         {
             _blobService = blobService;
             _serviceBusClient = serviceBusClient;
             //_repository = repository;
             _processorFactory = processorFactory;
+            _blobSasService = blobSasService;
+
             _logger = logger;
         }
 
@@ -129,6 +135,8 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
                 // 5. Upload to Blob Storage
                 
                 var blobUrl = await _blobService.UploadAsync("upload", fileName, fileData, originalContentType);
+                // Generate SAS URL for the uploaded file
+                var uploadSasUrl = await _blobSasService.GenerateReadSasUrlAsync("upload", fileName);
 
                 var processedFile = new ProcessedFile
                 {
@@ -189,6 +197,7 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
                     fileName = fileName,
                     fileSize = fileData.Length,
                     blobUrl = blobUrl,
+                    sasUrl = uploadSasUrl,
                     status = "Queued",
                     processorType = _processorFactory.GetProcessorType(fileName),
                     message = "File uploaded successfully and queued for processing"
