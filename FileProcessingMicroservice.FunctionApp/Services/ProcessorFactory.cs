@@ -30,10 +30,6 @@ namespace FileProcessingMicroservice.FunctionApp.Services
             _imageProcessor = imageProcessor;
             _logger = logger;
         }
-        public ProcessorFactory()
-        {
-            
-        }
 
         public async Task<ProcessingOutcome> ProcessAsync(FileContext context)
         {
@@ -132,7 +128,8 @@ namespace FileProcessingMicroservice.FunctionApp.Services
                 await writer.FlushAsync();
                 outputStream.Position = 0;
 
-                var outputFileName = $"validated_{context.FileName}";
+                //var outputFileName = $"validated_{context.FileName}";
+                var outputFileName = $"{context.FileName}";
 
                 _logger.LogInformation("Successfully validated JSON file: {OriginalFile} -> {ValidatedFile}",
                     context.FileName, outputFileName);
@@ -173,7 +170,8 @@ namespace FileProcessingMicroservice.FunctionApp.Services
                 await writer.FlushAsync();
                 outputStream.Position = 0;
 
-                var outputFileName = $"validated_{context.FileName}";
+                var outputFileName = $"{context.FileName}";
+                //var outputFileName = $"validated_{context.FileName}";
 
                 _logger.LogInformation("Successfully validated XML file: {OriginalFile} -> {ValidatedFile}",
                     context.FileName, outputFileName);

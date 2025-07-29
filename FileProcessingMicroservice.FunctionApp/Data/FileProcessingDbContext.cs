@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using FileProcessingMicroservice.FunctionApp.Models;
-using global::FileProcessingMicroservice.FunctionApp.Models;
+﻿using FileProcessingMicroservice.FunctionApp.Models;
 using Microsoft.EntityFrameworkCore;
 
 

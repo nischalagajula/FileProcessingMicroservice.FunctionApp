@@ -4,18 +4,17 @@ using global::FileProcessingMicroservice.FunctionApp.Models;
 using global::FileProcessingMicroservice.FunctionApp.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-//using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using System.Net;
-//using System.Net;
-//using FileProcessingMicroservice.FunctionApp.Data.Repositories;
-//using FileProcessingMicroservice.FunctionApp.Models;
-//using FileProcessingMicroservice.FunctionApp.Services;
-//using Microsoft.Azure.Functions.Worker;
-//using Microsoft.Azure.Functions.Worker.Http;
-//using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-//using Microsoft.Extensions.Logging;
+using System.Net;
+using FileProcessingMicroservice.FunctionApp.Data.Repositories;
+using FileProcessingMicroservice.FunctionApp.Models;
+using FileProcessingMicroservice.FunctionApp.Services;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Extensions.Logging;
 
 
 
@@ -25,25 +24,26 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
     public class FileStatusFunction
     {
         private readonly BlobService _blobService;
-        // private readonly IFileProcessingRepository _repository;
+        private readonly IFileProcessingRepository _repository;
         private readonly BlobSasService _blobSasService;
+        private readonly ProcessorFactory _processorFactory;
+
 
         private readonly ILogger<FileStatusFunction> _logger;
-        //private readonly SasTokenService _sasTokenService;
 
         public FileStatusFunction(
             BlobService blobService,
-                        //IFileProcessingRepository repository,
+                        IFileProcessingRepository repository,
                         BlobSasService blobSasService,
-            ILogger<FileStatusFunction> logger)//,
-            //SasTokenService sasTokenService)
+                        ProcessorFactory processorFactory,
+            ILogger<FileStatusFunction> logger)
         {
             _blobService = blobService;
-            //_repository = repository;
+            _repository = repository;
             _blobSasService = blobSasService;
+            _processorFactory = processorFactory;
 
             _logger = logger;
-            //_sasTokenService = sasTokenService;
         }
         public FileStatusFunction(ILogger<FileStatusFunction> logger)
         {
@@ -68,22 +68,22 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
             {
                 _logger.LogInformation("Getting status for file: {FileName}", fileName);
 
-                //// 1. Check if file exists in database
-                //var processedFile = await _repository.GetByFileNameAsync(fileName);
-                //if (processedFile == null)
-                //{
-                //    _logger.LogWarning("File not found in database: {FileName}", fileName);
+                // 1. Check if file exists in database
+                var processedFile = await _repository.GetByFileNameAsync(fileName);
+                if (processedFile == null)
+                {
+                    _logger.LogWarning("File not found in database: {FileName}", fileName);
 
-                //    var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
-                //    await notFoundResponse.WriteAsJsonAsync(new
-                //    {
-                //        fileName = fileName,
-                //        status = "NotFound",
-                //        message = "File not found in the system",
-                //        timestamp = DateTime.UtcNow
-                //    });
-                //    return notFoundResponse;
-                //}
+                    var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
+                    await notFoundResponse.WriteAsJsonAsync(new
+                    {
+                        fileName = fileName,
+                        status = "NotFound",
+                        message = "File not found in the system",
+                        timestamp = DateTime.UtcNow
+                    });
+                    return notFoundResponse;
+                }
 
                 // 2. Check blob existence
                 var uploadBlob = $"upload/{fileName}";
@@ -103,14 +103,12 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
                     });
                     return missingBlobResponse;
                 }
-                 ProcessorFactory processor = new ProcessorFactory();
-                var outputExtension = processor.GetExpectedOutputExtension(fileName);
+                var outputExtension = _processorFactory.GetExpectedOutputExtension(fileName);
                  var originalFileName = Path.GetFileNameWithoutExtension(fileName);
                 var dateFolder = DateTime.UtcNow.ToString("yyyy-MM-dd");
 //                var processedBlob = $"processed_{Path.GetFileNameWithoutExtension(fileName)}{OutputExtension}";
 
-                string processedBlob = $"{dateFolder.TrimEnd('/')}/processed_{originalFileName}{outputExtension}";
-               processedBlob = $"processed_{originalFileName}{outputExtension}";
+               var processedBlob = $"processed_{originalFileName}{outputExtension}";
 
                 bool processedExists = await _blobService.ExistsAsync("processed", processedBlob);
 
@@ -123,68 +121,71 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 await using var outputStream = await _blobService.DownloadAsync("processed", processedBlob);
 
-                
+        //         public string FileName { get; set; } = string.Empty;
+        ////public string UploadedUrl { get; set; } = string.Empty;
+        ////public string? ProcessedUrl { get; set; }
+        //public string Status { get; set; } = string.Empty;
+        //public string? ProcessedFileName { get; set; }
+        //public DateTime? ProcessedAt { get; set; }
+        //public string? ProcessorType { get; set; }
 
-                //// Add processed file information if available
-                //if (processedFile.Status == "Processed" && !string.IsNullOrEmpty(processedFile.ProcessedBlobUrl))
-                //{
-                //    statusResponse.ProcessedUrl = processedFile.ProcessedBlobUrl;
-                //    statusResponse.ProcessedFileName = processedFile.ProcessedFileName;
-                //    statusResponse.ProcessedAt = processedFile.ProcessedAt;
-                //    statusResponse.ProcessorType = processedFile.ProcessorType;
-                //}
-                //else if (processedFile.Status == "Failed")
-                //{
-                //    statusResponse.ProcessedUrl = null;
-                //    // Include error information in a more detailed response
-                //    await response.WriteAsJsonAsync(new
-                //    {
-                //        fileName = statusResponse.FileName,
-                //        uploadedUrl = statusResponse.UploadedUrl,
-                //        processedUrl = (string?)null,
-                //        status = statusResponse.Status,
-                //        errorMessage = processedFile.ErrorMessage,
-                //        processorType = processedFile.ProcessorType,
-                //        createdAt = processedFile.CreatedAt,
-                //        updatedAt = processedFile.UpdatedAt,
-                //        timestamp = DateTime.UtcNow
-                //    });
-
-                //_logger.LogInformation("Returned failed status for file: {FileName}", fileName);
-                //return response;
-                // }
-
-                // For successful or in-progress files
-                //await response.WriteAsJsonAsync(new
-                //{
-                //    fileName = statusResponse.FileName,
-                //    uploadedUrl = statusResponse.UploadedUrl,
-                //    processedUrl = statusResponse.ProcessedUrl,
-                //    status = statusResponse.Status,
-                //    processedFileName = statusResponse.ProcessedFileName,
-                //    processedAt = statusResponse.ProcessedAt,
-                //    processorType = statusResponse.ProcessorType,
-                //    originalFileSize = processedFile.OriginalFileSize,
-                //    processedFileSize = processedFile.ProcessedFileSize,
-                //    createdAt = processedFile.CreatedAt,
-                //    updatedAt = processedFile.UpdatedAt,
-                //    timestamp = DateTime.UtcNow
-                //});
-                // Generate SAS URL for the uploaded file
-                var ProcessedSasUrl = await _blobSasService.GenerateReadSasUrlAsync("processed", processedBlob);
-
-                _logger.LogInformation("Successfully returned status for file: {FileName}, Status: {Status}",
-                    fileName, "TEST STATUS");
-                var statusResponse = new FileStatusResponse
+        var statusResponse = new FileStatusResponse
                 {
                     FileName = fileName,
-                    UploadedUrl = "TEST URL",//processedFile.OriginalBlobUrl,
-                    Status = processedExists.ToString(),// "TEST Status"//processedFile.Status
-                    ProcessedUrl = ProcessedSasUrl
-                };
-                //var BlobResponse = req.CreateResponse(HttpStatusCode.NotFound);
-                await response.WriteAsJsonAsync(statusResponse);
+                    Status = processedExists.ToString()
+        };
+
+                //// Add processed file information if available
+                if (processedFile.Status == "Processed" )//&& !string.IsNullOrEmpty(processedFile.ProcessedBlobUrl))
+                {
+                    statusResponse.ProcessedFileName = processedFile.ProcessedFileName;
+                    statusResponse.ProcessedAt = processedFile.ProcessedAt;
+                    statusResponse.ProcessorType = processedFile.ProcessorType;
+                }
+                else if (processedFile.Status == "Failed")
+                {
+                    // Include error information in a more detailed response
+                    await response.WriteAsJsonAsync(new
+                    {
+                        fileName = statusResponse.FileName,
+                        status = statusResponse.Status,
+                        errorMessage = processedFile.ErrorMessage,
+                        processorType = processedFile.ProcessorType,
+                        createdAt = processedFile.CreatedAt,
+                        updatedAt = processedFile.UpdatedAt,
+                        timestamp = DateTime.UtcNow
+                    });
+
+                    _logger.LogInformation("Returned failed status for file: {FileName}", fileName);
+                    return response;
+                }
+
+                
+                // Generate SAS URL for the uploaded file
+                var ProcessedSasUrl = await _blobSasService.GenerateReadSasUrlAsync("processed", processedBlob);
+                // For successful or in-progress files
+                await response.WriteAsJsonAsync(new
+                {
+                    fileName = statusResponse.FileName,
+                    status = statusResponse.Status,
+                    ProcessedUrl = ProcessedSasUrl,
+                    processedFileName = statusResponse.ProcessedFileName,
+                    processedAt = statusResponse.ProcessedAt,
+                    processorType = statusResponse.ProcessorType,
+                    originalFileSize = processedFile.OriginalFileSize,
+                    processedFileSize = processedFile.ProcessedFileSize,
+                    createdAt = processedFile.CreatedAt,
+                    updatedAt = processedFile.UpdatedAt,
+                    timestamp = DateTime.UtcNow
+                });
+                _logger.LogInformation("Successfully returned status for file: {FileName}, Status: {Status}",
+                    fileName, "TEST STATUS");
+                
                 return response;
+
+                //var BlobResponse = req.CreateResponse(HttpStatusCode.NotFound);
+                //await response.WriteAsJsonAsync(statusResponse);
+
                 //return response;
             }
             catch (Exception ex)
@@ -220,26 +221,27 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
             {
                 _logger.LogInformation("Getting status for correlation ID: {CorrelationId}", correlationId);
 
-                //var processedFile = await _repository.GetByCorrelationIdAsync(correlationId);
-                //if (processedFile == null)
-                //{
-                //    _logger.LogWarning("File not found for correlation ID: {CorrelationId}", correlationId);
+                var processedFile = await _repository.GetByCorrelationIdAsync(correlationId);
+                if (processedFile == null)
+                {
+                    _logger.LogWarning("File not found for correlation ID: {CorrelationId}", correlationId);
 
-                //    var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
-                //    await notFoundResponse.WriteAsJsonAsync(new
-                //    {
-                //        correlationId = correlationId,
-                //        status = "NotFound",
-                //        message = "No file found with the specified correlation ID",
-                //        timestamp = DateTime.UtcNow
-                //    });
-                //    return notFoundResponse;
-                //}
+                    var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
+                    await notFoundResponse.WriteAsJsonAsync(new
+                    {
+                        correlationId = correlationId,
+                        status = "NotFound",
+                        message = "No file found with the specified correlation ID",
+                        timestamp = DateTime.UtcNow
+                    });
+                    return notFoundResponse;
+                }
 
-                // Get processing logs for this correlation ID
-                //var logs = await _repository.GetProcessingLogsAsync(correlationId);
+                //Get processing logs for this correlation ID
 
-                var response = req.CreateResponse(HttpStatusCode.OK);
+               var logs = await _repository.GetProcessingLogsAsync(correlationId);
+
+               var response = req.CreateResponse(HttpStatusCode.OK);
                 await response.WriteAsJsonAsync(new
                 {
                     correlationId = correlationId,
@@ -288,64 +290,7 @@ namespace FileProcessingMicroservice.FunctionApp.Functions {
             }
         }
 
-    //    [Function("GetFileStatusWithSas")]
-    //    [OpenApiOperation("GetFileStatusWithSas", Summary = "Get file status with SAS URLs")]
-    //    public async Task<HttpResponseData> GetFileStatusWithSas(
-    //[HttpTrigger(AuthorizationLevel.Function, "get", Route = "files/{fileName}/status-with-sas")] HttpRequestData req,
-    //string fileName)
-    //    {
-    //        var queryParams = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
-    //        //var year = queryParams["year"] ?? DateTime.UtcNow.Year.ToString();
 
-    //        var uploadExists = await _blobService.ExistsAsync("upload", fileName);
-
-    //        if (!uploadExists)
-    //        {
-    //            var notFound = req.CreateResponse(HttpStatusCode.NotFound);
-    //            await notFound.WriteAsJsonAsync(new { fileName, status = "NotFound" });
-    //            return notFound;
-    //        }
-
-    //        // Generate SAS URLs for existing files
-    //        string uploadSasUrl = null;
-    //        string processedSasUrl = null;
-
-    //        try
-    //        {
-    //            // Generate SAS for uploaded file
-    //            var uploadToken = await _sasTokenService.GenerateReadTokenAsync("upload", fileName);
-    //            uploadSasUrl = uploadToken.SasUrl;
-
-    //            // Check if processed version exists and generate SAS
-    //            var processedFileName = Path.GetFileNameWithoutExtension(fileName) + ".pdf";
-    //            var currentYear = DateTime.UtcNow.Year.ToString();
-
-    //            if (await _blobService.ExistsAsync("processed", processedFileName))
-    //            {
-    //                var processedToken = await _sasTokenService.GenerateReadTokenAsync("processed", processedFileName);
-
-    //                //var processedToken = await _sasTokenService.GenerateReadTokenAsync("processed", processedFileName, currentYear);
-    //                processedSasUrl = processedToken.SasUrl;
-    //            }
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            _logger.LogWarning(ex, "Failed to generate some SAS URLs for {FileName}", fileName);
-    //        }
-
-    //        var response = req.CreateResponse(HttpStatusCode.OK);
-    //        await response.WriteAsJsonAsync(new
-    //        {
-    //            fileName,
-    //            //uploadYear = year,
-    //            status = processedSasUrl != null ? "Processed" : "Pending",
-    //            uploadSasUrl,
-    //            processedSasUrl,
-    //            sasTokensExpiresAt = DateTimeOffset.UtcNow.AddHours(2)
-    //        });
-
-    //        return response;
-    //    }
 
     }
 }

@@ -28,12 +28,12 @@ namespace FileProcessingMicroservice.FunctionApp.Models
         [StringLength(500)]
         public string ProcessedFileName { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(1000)]
-        public string OriginalBlobUrl { get; set; } = string.Empty;
+        //[Required]
+        //[StringLength(1000)]
+        //public string OriginalBlobUrl { get; set; } = string.Empty;
 
-        [StringLength(1000)]
-        public string ProcessedBlobUrl { get; set; } = string.Empty;
+        //[StringLength(1000)]
+        //public string ProcessedBlobUrl { get; set; } = string.Empty;
 
         [Required]
         [StringLength(50)]
