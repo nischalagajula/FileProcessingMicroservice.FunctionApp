@@ -22,26 +22,6 @@ namespace FileProcessingMicroservice.FunctionApp.Services
             _logger = logger;
         }
 
-        //public async Task<string> GenerateUploadSasUri(string containerName, string fileName)
-        //{
-        //    var year = DateTime.UtcNow.Year.ToString();
-
-        //    var sasUrl = await GenerateUserDelegationSasUrlAsync(
-        //        containerName, fileName, //year,
-        //        BlobSasPermissions.Create | BlobSasPermissions.Write,
-        //        TimeSpan.FromMinutes(30)); // Shorter expiry for uploads
-        //    return sasUrl.ToString();
-
-        //    //return new SasTokenResponse
-        //    //{
-        //    //    SasUrl = sasUrl,
-        //    //    ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30),
-        //    //    TokenType = "UserDelegation",
-        //    //    FileName = fileName,
-        //    //    ContainerName = containerName,
-        //    //    // Year = year
-        //    //};
-        //}
         public async Task<string> UploadAsync(string containerName, string blobName, Stream data, string? contentType = null)
         {
             try
@@ -231,89 +211,6 @@ namespace FileProcessingMicroservice.FunctionApp.Services
                 _ => "application/octet-stream"
             };
         }
-
-    //    // NEW: Generate User Delegation SAS URL
-    //    public async Task<string> GenerateUserDelegationSasUrlAsync(
-    //        string containerName,
-    //        string fileName,
-    //        //string year,
-    //        BlobSasPermissions permissions = BlobSasPermissions.Read,
-    //        TimeSpan? expiresIn = null)
-    //    {
-    //        var expirationTime = expiresIn ?? TimeSpan.FromHours(1);
-    //       // var blobName1 = $"{year}/{fileName}";
-    //        var blobName = $"{fileName}";
-
-    //        // Get User Delegation Key (valid for up to 7 days)
-
-    //        UserDelegationKey userDelegationKey = (await _blobServiceClient.GetUserDelegationKeyAsync(
-    //    DateTimeOffset.UtcNow,
-    //    DateTimeOffset.UtcNow.AddDays(1)))
-    //.Value;
-    //        var userDelegationKey1 = await _blobServiceClient.GetUserDelegationKeyAsync(
-    //            DateTimeOffset.UtcNow,
-    //            DateTimeOffset.UtcNow.AddDays(1));
-
-    //        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-    //        var blobClient = containerClient.GetBlobClient(blobName);
-
-    //        var sasBuilder = new BlobSasBuilder
-    //        {
-    //            BlobContainerName = containerName,
-    //            BlobName = blobName,
-    //            Resource = "b", // blob resource
-    //            StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5), // Allow for clock skew
-    //            ExpiresOn = DateTimeOffset.UtcNow.Add(expirationTime)
-    //        };
-    //        //sasBuilder.SetPermissions(permissions);
-    //        sasBuilder.SetPermissions(BlobSasPermissions.Read);
-
-    //        //var sasUri = blobClient.GenerateSasUri(sasBuilder, userDelegationKey);
-    //        var sasUri = new BlobUriBuilder(blobClient.Uri)
-    //        {
-    //            Sas = sasBuilder.ToSasQueryParameters(
-    //        userDelegationKey,
-    //        _blobServiceClient.AccountName)
-    //        }.ToUri();
-
-    //        // Return string or Uri as required by your method
-    //        return sasUri.ToString();
-    //    }
-
-    //    // NEW: Generate Service SAS URL (fallback option)
-    //    public string GenerateServiceSasUrl(
-    //        string containerName,
-    //        string fileName,
-    //        //string year,
-    //        BlobSasPermissions permissions = BlobSasPermissions.Read,
-    //        TimeSpan? expiresIn = null)
-    //    {
-    //        var container = _blobServiceClient.GetBlobContainerClient(containerName);
-    //        //await container.CreateIfNotExistsAsync(PublicAccessType.None);
-
-    //        var blobClient = container.GetBlobClient(fileName);
-
-    //        if (!blobClient.CanGenerateSasUri)
-    //            throw new InvalidOperationException("BlobServiceClient cannot generate SAS URIs");
-
-    //        var expirationTime = expiresIn ?? TimeSpan.FromHours(1);
-    //        //var blobName1 = $"{year}/{fileName}";
-    //        var blobName = $"{fileName}";
-
-    //       // var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-    //        //var blobClient = containerClient.GetBlobClient(blobName);
-
-    //        var sasBuilder = new BlobSasBuilder
-    //        {
-    //            BlobContainerName = containerName,
-    //            BlobName = blobName,
-    //            Resource = "b",
-    //            StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
-    //            ExpiresOn = DateTimeOffset.UtcNow.Add(expirationTime)
-    //        };
-    //        sasBuilder.SetPermissions(permissions);
-
-    //        return blobClient.GenerateSasUri(sasBuilder).ToString();
-    //    }
+    
     }
 }

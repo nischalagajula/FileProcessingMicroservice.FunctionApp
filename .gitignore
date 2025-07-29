@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/FileProcessingMicroservice.FunctionApp/Services/XmlValidationService.cs
+/FileProcessingMicroservice.FunctionApp/Services/XmlCorrectionService.cs

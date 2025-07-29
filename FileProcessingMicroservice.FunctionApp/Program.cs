@@ -12,7 +12,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
+using System;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Azure.Storage.Blobs;
+using Azure.Messaging.ServiceBus;
 
 // Register Syncfusion license
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(
@@ -35,7 +41,6 @@ var host = new HostBuilder()
         // Azure services
         services.AddSingleton(_ => new BlobServiceClient(storageConn));
         services.AddSingleton(_ => new ServiceBusClient(serviceBusConn));
-        //services.AddSingleton<SasTokenService>();
 
         // Use Managed Identity for enhanced security
         //services.AddSingleton(serviceProvider =>
@@ -46,18 +51,18 @@ var host = new HostBuilder()
         //});
 
         // Entity Framework
-        //services.AddDbContext<FileProcessingDbContext>(options =>
-        //    options.UseSqlServer(sqlConn, sqlOptions =>
-        //    {
-        //        sqlOptions.EnableRetryOnFailure(
-        //            maxRetryCount: 5,
-        //            maxRetryDelay: TimeSpan.FromSeconds(30),
-        //            errorNumbersToAdd: null);
-        //        sqlOptions.CommandTimeout(300);
-        //    }));
+        services.AddDbContext<FileProcessingDbContext>(options =>
+            options.UseSqlServer(sqlConn, sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+                sqlOptions.CommandTimeout(300);
+            }));
 
         // Repositories
-        //services.AddScoped<IFileProcessingRepository, FileProcessingRepository>();
+        services.AddScoped<IFileProcessingRepository, FileProcessingRepository>();
 
         // Business services
         services.AddSingleton<BlobService>();
@@ -65,6 +70,7 @@ var host = new HostBuilder()
         services.AddScoped<ImageProcessingService>();
         services.AddScoped<TextToPdfService>();
         services.AddScoped<ProcessorFactory>();
+        services.AddScoped<BlobSasService>();
 
         //Application Insights
        //services.AddApplicationInsightsTelemetryWorkerService();
@@ -82,17 +88,17 @@ var host = new HostBuilder()
     .Build();
 
 // Ensure database exists
-//try
-//{
-//    using var scope = host.Services.CreateScope();
-//    var context = scope.ServiceProvider.GetRequiredService<FileProcessingDbContext>();
-//    await context.Database.EnsureCreatedAsync();
-//}
-//catch (Exception ex)
-//{
-//    var logger = host.Services.GetRequiredService<ILogger<Program>>();
-//    logger.LogError(ex, "An error occurred while ensuring the database exists");
-//}
+try
+{
+    using var scope = host.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<FileProcessingDbContext>();
+    await context.Database.EnsureCreatedAsync();
+}
+catch (Exception ex)
+{
+    var logger = host.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred while ensuring the database exists");
+}
 
 host.Run();
 
@@ -106,3 +112,5 @@ host.Run();
 //    .ConfigureFunctionsApplicationInsights();
 
 //builder.Build().Run();
+
+//host.Run();

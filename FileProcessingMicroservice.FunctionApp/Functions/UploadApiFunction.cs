@@ -25,21 +25,27 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
     {
         private readonly BlobService _blobService;
         private readonly ServiceBusClient _serviceBusClient;
-        //private readonly IFileProcessingRepository _repository;
+        private readonly IFileProcessingRepository _repository;
         private readonly ProcessorFactory _processorFactory;
+        private readonly BlobSasService _blobSasService;
+
         private readonly ILogger<UploadApiFunction> _logger;
+
 
         public UploadApiFunction(
             BlobService blobService,
             ServiceBusClient serviceBusClient,
-            //IFileProcessingRepository repository,
+            IFileProcessingRepository repository,
             ProcessorFactory processorFactory,
-            ILogger<UploadApiFunction> logger)
+            BlobSasService blobSasService,
+        ILogger<UploadApiFunction> logger)
         {
             _blobService = blobService;
             _serviceBusClient = serviceBusClient;
-            //_repository = repository;
+            _repository = repository;
             _processorFactory = processorFactory;
+            _blobSasService = blobSasService;
+
             _logger = logger;
         }
 
@@ -47,7 +53,6 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
         [OpenApiOperation(operationId: "UploadFile", tags: new[] { "File Upload" },
                           Summary = "Upload a file for processing",
                           Description = "Uploads a file via multipart/form-data and queues it for processing.")]
-        //[OpenApiRequestBody(contentType: "multipart/form-data", bodyType: typeof(object), Required = true,
         [OpenApiRequestBody(contentType: "multipart/form-data", bodyType: typeof(FileUploadRequest), Required = true,
                            Description = "Form data with file and optional fields")]
         [OpenApiResponseWithBody(HttpStatusCode.Accepted, "application/json", typeof(object),
@@ -129,34 +134,37 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
                 // 5. Upload to Blob Storage
                 
                 var blobUrl = await _blobService.UploadAsync("upload", fileName, fileData, originalContentType);
+                // Generate SAS URL for the uploaded file
+                var uploadSasUrl = await _blobSasService.GenerateReadSasUrlAsync("upload", fileName);
 
+                //var processedFile = new ProcessedFile
+                //{
+                //    CorrelationId = correlationId,
+                //    OriginalFileName = fileName,
+                //    //OriginalBlobUrl = blobUrl,
+                //    Status = "Queued",
+                //    //Status = "Uploaded",
+                //    ContentType = originalContentType ?? "application/octet-stream",
+                //    OriginalFileSize = fileData.Length,
+                //    ProcessorType = _processorFactory.GetProcessorType(fileName),
+                //    CreatedAt = DateTime.UtcNow
+                //};
+                //6.Create database record
                 var processedFile = new ProcessedFile
                 {
                     CorrelationId = correlationId,
                     OriginalFileName = fileName,
-                    OriginalBlobUrl = blobUrl,
+                    //OriginalBlobUrl = blobUrl,
                     Status = "Queued",
                     ContentType = originalContentType ?? "application/octet-stream",
                     OriginalFileSize = fileData.Length,
                     ProcessorType = _processorFactory.GetProcessorType(fileName),
                     CreatedAt = DateTime.UtcNow
                 };
-                // 6. Create database record
-                //var processedFile = new ProcessedFile
-                //{
-                //    CorrelationId = correlationId,
-                //    OriginalFileName = fileName,
-                //    OriginalBlobUrl = blobUrl,
-                //    Status = "Queued",
-                //    ContentType = originalContentType ?? "application/octet-stream",
-                //    OriginalFileSize = fileData.Length,
-                //    ProcessorType = _processorFactory.GetProcessorType(fileName),
-                //    CreatedAt = DateTime.UtcNow
-                //};
 
-                //await _repository.CreateAsync(processedFile);
-                //await _repository.LogProcessingEventAsync(correlationId, "FileUploaded",
-                // $"File {fileName} uploaded successfully to blob storage", "Info");
+                await _repository.CreateAsync(processedFile);
+                await _repository.LogProcessingEventAsync(correlationId, "FileUploaded",
+                 $"File {fileName} uploaded successfully to blob storage", "Info");
 
                 // 7. Send message to Service Bus queue
                 var message = new FileProcessingRequest
@@ -178,8 +186,8 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
                 };
 
                 await sender.SendMessageAsync(serviceBusMessage);
-                //await _repository.LogProcessingEventAsync(correlationId, "MessageQueued",
-                    //"File processing message sent to queue", "Info");
+                await _repository.LogProcessingEventAsync(correlationId, "MessageQueued",
+                "File processing message sent to queue", "Info");
 
                 // 8. Return success response
                 var response = req.CreateResponse(HttpStatusCode.Accepted);
@@ -188,12 +196,22 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
                     correlationId = correlationId,
                     fileName = fileName,
                     fileSize = fileData.Length,
-                    blobUrl = blobUrl,
+                    sasUrl = uploadSasUrl,
                     status = "Queued",
                     processorType = _processorFactory.GetProcessorType(fileName),
                     message = "File uploaded successfully and queued for processing"
                 });
-
+                //new ProcessedFile
+                //{
+                //    CorrelationId = correlationId,
+                //    OriginalFileName = fileName,
+                //    OriginalBlobUrl = blobUrl,
+                //    Status = "Queued",
+                //    ContentType = originalContentType ?? "application/octet-stream",
+                //    OriginalFileSize = fileData.Length,
+                //    ProcessorType = _processorFactory.GetProcessorType(fileName),
+                //    CreatedAt = DateTime.UtcNow
+                //};
                 _logger.LogInformation("File upload completed successfully. CorrelationId: {CorrelationId}, FileName: {FileName}",
                     correlationId, fileName);
 
@@ -205,8 +223,8 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
 
                 try
                 {
-                //    await _repository.LogProcessingEventAsync(correlationId, "UploadError",
-                //        $"Upload failed: {ex.Message}", "Error", ex.ToString());
+                    await _repository.LogProcessingEventAsync(correlationId, "UploadError",
+                        $"Upload failed: {ex.Message}", "Error", ex.ToString());
                 }
                 catch
                 {

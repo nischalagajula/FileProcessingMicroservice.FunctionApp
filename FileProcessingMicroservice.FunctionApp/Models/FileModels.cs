@@ -22,7 +22,7 @@ namespace FileProcessingMicroservice.FunctionApp.Models
         public string CorrelationId { get; set; } = string.Empty;
         public string OriginalFileName { get; set; } = string.Empty;
         public string ProcessedFileName { get; set; } = string.Empty;
-        public string ResultBlobUrl { get; set; } = string.Empty;
+        //public string ResultBlobUrl { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
@@ -32,8 +32,8 @@ namespace FileProcessingMicroservice.FunctionApp.Models
     public class FileStatusResponse
     {
         public string FileName { get; set; } = string.Empty;
-        public string UploadedUrl { get; set; } = string.Empty;
-        public string? ProcessedUrl { get; set; }
+        //public string UploadedUrl { get; set; } = string.Empty;
+        //public string? ProcessedUrl { get; set; }
         public string Status { get; set; } = string.Empty;
         public string? ProcessedFileName { get; set; }
         public DateTime? ProcessedAt { get; set; }

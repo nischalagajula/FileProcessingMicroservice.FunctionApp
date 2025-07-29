@@ -1,16 +1,10 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Threading.Tasks;
 
 using Azure.Messaging.ServiceBus;
-using FileProcessingMicroservice.FunctionApp.Data.Repositories;
 using FileProcessingMicroservice.FunctionApp.Models;
-using global::FileProcessingMicroservice.FunctionApp.Data.Repositories;
-using global::FileProcessingMicroservice.FunctionApp.Models;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using FileProcessingMicroservice.FunctionApp.Data.Repositories;
 
 
 namespace FileProcessingMicroservice.FunctionApp.Functions
@@ -18,15 +12,15 @@ namespace FileProcessingMicroservice.FunctionApp.Functions
 {
 public class DeadLetterFunction
 {
-   // private readonly IFileProcessingRepository _repository;
+    private readonly IFileProcessingRepository _repository;
     private readonly ILogger<DeadLetterFunction> _logger;
 
     public DeadLetterFunction(
-        //IFileProcessingRepository repository,
+        FileProcessingRepository repository,
         ILogger<DeadLetterFunction> logger)
     {
-        //_repository = repository;
-        _logger = logger;
+            _repository = repository;
+            _logger = logger;
     }
 
     [Function("FileUploadDeadLetterFunction")]
@@ -87,8 +81,8 @@ public class DeadLetterFunction
 
             try
             {
-                //await _repository.LogProcessingEventAsync(correlationId, "DeadLetterProcessingError",
-                //    $"Failed to process dead letter message: {ex.Message}", "Error", ex.ToString());
+                await _repository.LogProcessingEventAsync(correlationId, "DeadLetterProcessingError",
+                    $"Failed to process dead letter message: {ex.Message}", "Error", ex.ToString());
             }
             catch (Exception logEx)
             {
@@ -134,20 +128,20 @@ public class DeadLetterFunction
             _logger.LogError("File processing result message dead lettered. CorrelationId: {CorrelationId}, Reason: {Reason}, Description: {Description}",
                 correlationId, deadLetterReason, deadLetterDescription);
 
-            // Log the dead letter event
-            //await _repository.LogProcessingEventAsync(correlationId, "ResultDeadLettered",
-            //    $"Processing result message was dead lettered. Reason: {deadLetterReason}, Description: {deadLetterDescription}",
-            //    "Error", JsonSerializer.Serialize(new
-            //    {
-            //        MessageId = message.MessageId,
-            //        DeliveryCount = message.DeliveryCount,
-            //        DeadLetterReason = deadLetterReason,
-            //        DeadLetterDescription = deadLetterDescription,
-            //        OriginalResult = processingResult
-            //    }));
+                // Log the dead letter event
+                await _repository.LogProcessingEventAsync(correlationId, "ResultDeadLettered",
+                    $"Processing result message was dead lettered. Reason: {deadLetterReason}, Description: {deadLetterDescription}",
+                    "Error", JsonSerializer.Serialize(new
+                    {
+                        MessageId = message.MessageId,
+                        DeliveryCount = message.DeliveryCount,
+                        DeadLetterReason = deadLetterReason,
+                        DeadLetterDescription = deadLetterDescription,
+                        OriginalResult = processingResult
+                    }));
 
-            // Send alert about the dead lettered result
-            await SendResultDeadLetterAlert(correlationId, processingResult, deadLetterReason, deadLetterDescription);
+                // Send alert about the dead lettered result
+                await SendResultDeadLetterAlert(correlationId, processingResult, deadLetterReason, deadLetterDescription);
 
             // Complete the dead letter message
             await messageActions.CompleteMessageAsync(message);
@@ -167,22 +161,22 @@ public class DeadLetterFunction
     {
         try
         {
-           // var processedFile = await _repository.GetByCorrelationIdAsync(correlationId);
-            //if (processedFile != null)
-            //{
-            //    processedFile.Status = "Failed";
-            //    processedFile.ErrorMessage = $"Dead lettered: {reason} - {description}";
-            //    await _repository.UpdateAsync(processedFile);
+                var processedFile = await _repository.GetByCorrelationIdAsync(correlationId);
+                if (processedFile != null)
+                {
+                    processedFile.Status = "Failed";
+                    processedFile.ErrorMessage = $"Dead lettered: {reason} - {description}";
+                    await _repository.UpdateAsync(processedFile);
 
-                _logger.LogInformation("Updated file status to Failed due to dead letter. CorrelationId: {CorrelationId}, FileName: {FileName}",
+                    _logger.LogInformation("Updated file status to Failed due to dead letter. CorrelationId: {CorrelationId}, FileName: {FileName}",
                     correlationId, fileName);
-            //}
-            //else
-            //{
-            //    _logger.LogWarning("Could not find file to update status. CorrelationId: {CorrelationId}, FileName: {FileName}",
-            //        correlationId, fileName);
-            //}
-        }
+                }
+                else
+                {
+                    _logger.LogWarning("Could not find file to update status. CorrelationId: {CorrelationId}, FileName: {FileName}",
+                        correlationId, fileName);
+                }
+            }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating file status for dead letter. CorrelationId: {CorrelationId}", correlationId);
@@ -209,11 +203,11 @@ public class DeadLetterFunction
                 ApplicationProperties = message.ApplicationProperties?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString())
             };
 
-            //await _repository.LogProcessingEventAsync(correlationId, "MessageDeadLettered",
-            //    $"Message dead lettered after {message.DeliveryCount} delivery attempts. File: {originalRequest?.FileName ?? "unknown"}",
-            //    "Error", JsonSerializer.Serialize(deadLetterDetails));
+                await _repository.LogProcessingEventAsync(correlationId, "MessageDeadLettered",
+                    $"Message dead lettered after {message.DeliveryCount} delivery attempts. File: {originalRequest?.FileName ?? "unknown"}",
+                    "Error", JsonSerializer.Serialize(deadLetterDetails));
 
-            _logger.LogInformation("Logged dead letter details. CorrelationId: {CorrelationId}", correlationId);
+                _logger.LogInformation("Logged dead letter details. CorrelationId: {CorrelationId}", correlationId);
         }
         catch (Exception ex)
         {
