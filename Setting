@@ -1,0 +1,15 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=satechtalk1;AccountKey=jv+t1YvNGN7nSLkA+dgNis/JoSxfarF1jBcv5Mfl96XnWu1YkcmqNaJHN946LM1MO6rFnp8OrjDF+ASt6qUkNQ==;EndpointSuffix=core.windows.net",
+    "ServiceBusConnection": "Endpoint=sb://sb-azurefileprocessing.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=jJ5YmuebqmYHSWFD+lbA3pprM8D0d/QdF+ASbJTAAe0=",
+    "AzureSQLConnection": "Server=tcp:fileprocessing-usingazure.database.windows.net,1433;Initial Catalog=test-DB;Persist Security Info=False;User ID=techtalk2_0;Password=DemoTT2.0;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "SYNCFUSION_LICENSE_KEY": "Ngo9BigBOggjHTQxAR8/V1JEaF5cXmRCdkx0WmFZfVtgcF9HYlZTR2Y/P1ZhSXxWdkJhX35YcXZXRWNVWEF9XEI=",
+    "QueueName": "sbq-filestatus-change-queue"
+  },
+  "Host": {
+    "CORS": "*",
+    "CorsCredentials": false
+  }
+}
