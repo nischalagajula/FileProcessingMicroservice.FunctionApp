@@ -1,0 +1,142 @@
+<telerik:RadPanelBar runat="server" ID="rdpParcelDetails" Width="100%"
+    AllowCollapseAllItems="true" ExpandMode="MultipleExpandedItems"
+    OnClientItemExpand="OnParcelExpand" OnClientItemCollapse="OnParcelCollapse"
+    EnableEmbeddedBaseStylesheet="false" BackColor="#EBECE4">
+    <Items>
+        <telerik:RadPanelItem Text="<span class='ExpandCollapseHeader'>Parcel Details (click to expand details)</span>" Font-Bold="true">
+            <ContentTemplate>
+
+                <asp:UpdatePanel runat="server" ID="pnlUpdateParcelDetails" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <table id="Table1" class="prHeaderTable">
+                            <tr>
+                                <td class="prOrderDetailsLeftColumn">
+                                    <table style="width: 100%">
+                                        <tr>
+                                            <td class="prOrderDetailsLabel">County:</td>
+                                            <td class="prOrderDetailsValue">
+                                                <asp:Label ID="lblCountyName" runat="server" />
+                                            </td>
+                                            <td class="prOrderDetailsLabel prOrderDetailsOrderTypeDatesColumn">Order Type:</td>
+                                            <td class="prOrderDetailsValue prOrderDetailsOrderTypeDatesColumn">
+                                                <asp:Label ID="lblOrderType" runat="server" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="prOrderDetailsLabel">State:</td>
+                                            <td class="prOrderDetailsValue">
+                                                <asp:Label ID="lblStateName" runat="server" />
+                                            </td>
+                                            <td class="prOrderDetailsLabel prOrderDetailsOrderTypeDatesColumn prOrderDetailsEffectiveDate">Effective Dates:</td>
+                                            <td class="prOrderDetailsValue prOrderDetailsOrderTypeDatesColumn">
+                                                <asp:Label ID="lblCHEffectiveDate" runat="server" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td class="prOrderDetailsRightColumn"></td>
+                            </tr>
+
+                            <asp:Repeater ID="rptParcelDetails" runat="server" OnItemDataBound="rptParcelDetails_ItemDataBound">
+                                <ItemTemplate>
+                                    <tr>
+                                        <td class="prOrderDetailsLeftColumn">
+                                            <table width="100%">
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsLandValueColumn">Land Value:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsLandValueColumn">
+                                                        <asp:Label ID="lblLandValue" runat="server" />
+                                                        <img src="Images/EditNarrow.png" style="float:right; cursor:pointer"
+                                                            onclick="showPropertyDetailsDialog('<%=CurrentOrder.OrderDetail.PublicOrderId.ToString() %>', '<%# DataBinder.Eval(Container.DataItem, "ParcelId") %>'); return false;" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsLandValueColumn">Building Value:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsLandValueColumn">
+                                                        <asp:Label ID="lblBuildingValue" runat="server" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsLandValueColumn">Assessed Value:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsLandValueColumn">
+                                                        <asp:Label ID="lblAssessedValued" runat="server" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsLandValueColumn">Exemption Amt.:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsLandValueColumn">
+                                                        <asp:Label ID="lblExemptionAmount" runat="server" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsLandValueColumn">Additional Info:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsLandValueColumn">
+                                                        <asp:Label ID="lblAdditionalInfo" runat="server" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsLandValueColumn">&#160;</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsLandValueColumn">
+                                                        <asp:CheckBox ID="chkIsMobileHome" runat="server" />
+                                                        Is Mobile Home&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                        <asp:Label runat="server" ID="lblIsCondo"></asp:Label>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                        <td class="prOrderDetailsRightColumn">
+                                            <table id="sum1" style="width: 100%;">
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsParcelIdColumn">Parcel ID:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsParcelIdColumn">
+                                                        <asp:Label ID="lblDisplayParcelId" runat="server" />
+                                                        <asp:HiddenField ID="hdnParcelId" runat="server" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsParcelIdColumn">Owner(s):</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsParcelIdColumn">
+                                                        <asp:Label ID="lblOwnerNames" runat="server" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsParcelIdColumn" colspan="2">&#160;</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsParcelIdColumn">Legal Desc.:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsParcelIdColumn">
+                                                        <asp:Label ID="lblLegalDesc" runat="server" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="prOrderDetailsLabel prOrderDetailsParcelIdColumn prOrderDetailsAddress">Address:</td>
+                                                    <td class="prOrderDetailsValue prOrderDetailsParcelIdColumn prOrderDetailsAddress">
+                                                        <table>
+                                                            <tr>
+                                                                <td style="vertical-align: top; width: 182px;">
+                                                                    <%# DataBinder.Eval(Container.DataItem, "PropertyAddress") %>
+                                                                    &#160;&#160;
+                                                                </td>
+                                                                <td style="vertical-align: top; text-align: right; font-weight: bold;">
+                                                                    <asp:Label ID="lblMunicipalityTitle" runat="server" Text="Municipality:" />
+                                                                </td>
+                                                                <td style="vertical-align: top;">
+                                                                    <asp:Label ID="lblMunicipality" runat="server" />
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </ItemTemplate>
+                            </asp:Repeater>
+                        </table>
+                    </ContentTemplate>
+                </asp:UpdatePanel>
+
+            </ContentTemplate>
+        </telerik:RadPanelItem>
+    </Items>
+</telerik:RadPanelBar>
