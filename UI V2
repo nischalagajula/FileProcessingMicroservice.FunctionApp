@@ -1,0 +1,102 @@
+                                    <telerik:RadPanelBar runat="server" ID="RadPanelBar1" Width="100%" AllowCollapseAllItems="true"
+                                        CausesValidation="false" ExpandMode="MultipleExpandedItems" BackColor="#EBECE4"
+                                        OnClientItemExpand=" OnPowerSearchExpand " OnClientItemCollapse=" OnPowerSearchCollapse "
+                                        EnableEmbeddedBaseStylesheet="false">
+                                        <Items>
+                                            <telerik:RadPanelItem Text="<span class='ExpandCollapseHeader'>Power Searches (click to expand details)</span>"
+                                                Font-Bold="true">
+                                                <ContentTemplate>
+                                                    <asp:Label ID="lblPowerSearchContent" runat="server"></asp:Label>
+                                                    <asp:PlaceHolder ID="uiPowerSearchesPlaceholder" runat="server"></asp:PlaceHolder>
+                                                </ContentTemplate>
+                                            </telerik:RadPanelItem>
+                                        </Items>
+                                    </telerik:RadPanelBar>
+
+----------------------------------------------------------------------------------------------------
+
+<script type="text/javascript">
+    //These variables are defined in PRBeta.js
+    lblGIContentId = '#<%=lblGIContent.ClientID%>';
+
+    publicOrderId = '<%=CurrentOrder == null ?  "" : CurrentOrder.OrderDetail.PublicOrderId.ToString() %>';
+    countyId = '<%=CurrentOrder == null ?  "" : CurrentOrder.OrderDetail.CountyId.Value.ToString() %>';
+    serviceProviderId = '<%=CurrentOrder == null ?  "" : CurrentOrder.ServiceProviderId.ToString() %>';
+    canPowerSearch = '<%=CurrentOrder == null ?  "" : CurrentOrder.ServiceProvider.Profile.CanAccessPowerSearches.ToString() %>';
+    lblPowerSearchContentId = '#<%=lblPowerSearchContent.ClientID%>';
+    publicQueryString = '<%=PublicQueryString%>';
+    hdnNeedToSaveState = '<%=hdnNeedToSaveState.ClientID %>';
+    CACHE_ID = '<%=CACHE_ID %>';
+    filterDropDownId = '<%=ddlTopFilter.ClientID %>';
+    filterDropDownBottomId = '<%=ddlBottomFilter.ClientID %>';
+    ddlViewId = '<%=ddlView.ClientID %>';
+
+    function SaveCache() {
+        var url = "PropertyReportBeta.aspx?" + publicQueryString + "/SaveCache";
+        $.ajax({
+            url: url,
+            data: $("#Form2").serialize(),
+            type: "POST",
+            cache: false,
+            async: false,
+            success: function () {
+            },
+            error: function (response, status, error) {
+                if (response != null && response.responseText.length > 0)
+                    if (jQuery.parseJSON(response.responseText).Message == "SESSION_TIMEOUT")
+                        location.href = "login.aspx?ReturnUrl=" + window.location.pathname + window.location.search;
+
+            }
+        });
+
+        return;
+
+        //var u = $get('<%=btnDeleteRecYes.ClientID %>');
+        //u.click();
+        <%=Page.ClientScript.GetPostBackEventReference(this.btnDeleteRecYes,"") %>;
+    }
+
+</script>
+
+---------------------------------------------------------------------------------------------------
+
+<tr>
+    <td>
+        <telerik:RadPanelBar runat="server" ID="rdpGISearchNames" Width="100%" AllowCollapseAllItems="true"
+            CausesValidation="false" ExpandMode="MultipleExpandedItems" BackColor="#EBECE4"
+            OnClientItemExpand=" OnGINameSearchExpand " OnClientItemCollapse=" OnGINameSearchCollapse "
+            EnableEmbeddedBaseStylesheet="false">
+            <Items>
+                <telerik:RadPanelItem Text="<span class='ExpandCollapseHeader'>Names Searched (click to expand details)</span>"
+                    Font-Bold="true">
+                    <ContentTemplate>
+                        <asp:Label ID="lblGIContent" runat="server"></asp:Label>
+                    </ContentTemplate>
+                </telerik:RadPanelItem>
+            </Items>
+        </telerik:RadPanelBar>
+    </td>
+</tr>
+---------------------------------------------------------------------------------------------------
+
+function OnGINameSearchExpand_Error(response, status, error) {
+    if (response != null && response.responseText.length > 0)
+        if (jQuery.parseJSON(response.responseText).Message == "SESSION_TIMEOUT")
+            location.href = "login.aspx?ReturnUrl=" + window.location.pathname + window.location.search;
+}
+----------------------------------------------------------------------------------------------------
+function OnGINameSearchCollapse(sender, eventArgs) {
+    var tit = eventArgs.get_item().get_text();
+    eventArgs.get_item().set_text(tit.substring(0, tit.indexOf("(")) + " (click to expand details)</span>");
+}
+-------------------------------------------------------------------------------------------------------
+
+function OnParcelExpand(sender, eventArgs) {
+    var tit = eventArgs.get_item().get_text();
+    eventArgs.get_item().set_text("<span class='ExpandCollapseHeader'>" + tit.substring(0, tit.indexOf("(")) + " (click to collapse details)</span>");
+}
+function OnParcelCollapse(sender, eventArgs) {
+    var tit = eventArgs.get_item().get_text();
+    eventArgs.get_item().set_text("<span class='ExpandCollapseHeader'>" + tit.substring(0, tit.indexOf("(")) + " (click to expand details)</span>");
+}
+----------------------------------------------------------------------------------------------------------
